@@ -9,7 +9,7 @@
 
     public async Task InvokeAsync(HttpContext context)
     {
-        bool isAuthenticated = context.Session.TryGetValue("Username", out _);
+        bool isAuthenticated = context.Session.TryGetValue("UserId", out _);
 
         var protectedPaths = new[] { "/", "/Home", "/Home/Index", "/Auth", "/Auth/Logout" };
         var authPaths = new[] { "/Auth", "/Auth/Login", "/Auth/Register" };

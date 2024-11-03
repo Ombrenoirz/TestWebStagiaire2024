@@ -1,8 +1,124 @@
-﻿@{
-    ViewData["Title"] = "Accueil";
+﻿@using System.Globalization
+@model List<TestWebStagiaire2024.Models.Entities.Item>
+@{
+	ViewData["Title"] = "Accueil";
+	decimal totalPrice = 0;
 }
+<h2>Liste d'épicerie</h2>
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th scope="col">#</th>
+			<th scope="col">Nom</th>
+			<th scope="col">Quantité</th>
+			<th scope="col">Prix</th>
+			<th scope="col">Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		@for (int i = 0; i < Model.Count; i++)
+		{
+			var item = Model[i];
+			<tr>
+				<th scope="row">@(i + 1)</th>
+				<td>@item.Name</td>
+				<td>@item.Quantity</td>
+				<td>@item.Price.ToString("C", CultureInfo.CurrentCulture)</td>
+				<td>
+					<a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning edit-item"
+					   data-bs-toggle="modal" data-bs-target="#itemModal" data-id="@item.Id">Modifier</a>
+					<form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
+						<button type="submit" class="btn btn-sm btn-danger"
+								onclick="return confirm('Êtes-vous certain de vouloir supprimer cet article ?')">
+							Supprimer
+						</button>
+					</form>
+				</td>
+			</tr>
+			totalPrice += item.Price * item.Quantity;
+		}
+	</tbody>
+</table>
+<p>Prix total: @totalPrice.ToString("C", CultureInfo.CurrentCulture)</p>
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#itemModal">
+	Ajouter
+</button>
+<form asp-action="DeleteAll" asp-route-userId="@Context.Session.GetInt32("UserId")" method="post" class="d-inline">
+	<button type="submit" class="btn btn-danger"
+			onclick="return confirm('Êtes-vous certain de vouloir supprimer tous les articles ?')">
+		Supprimer la liste
+	</button>
+</form>
+@await Html.PartialAsync("_ItemModal", new TestWebStagiaire2024.Models.Entities.Item())
+@section Scripts {
+	@{
+		await Html.RenderPartialAsync("_ValidationScriptsPartial");
+	}
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+	<script>
+		$(document).ready(function () {
+			$('#itemModal').on('show.bs.modal', function () {
+				resetForm();
+			});
+
+			$(document).on('submit', '#itemForm', function (e) {
+				e.preventDefault();
+
+				var priceInput = $('#itemForm input[name="Price"]');
+				var normalizedPrice = priceInput.val().replace(',', '.');
+				priceInput.val(normalizedPrice);
+
+				var form = $(this);
+				var url = form.attr('action');
+				var method = form.attr('method');
+
+				$.ajax({
+					url: url,
+					type: method,
+					data: form.serialize(),
+					success: function (data) {
+						$('#itemModal').modal('hide');
+						window.location.reload();
+					},
+					error: function (xhr) {
+						console.error(xhr);
+					}
+				});
+			});
+
+			$('.edit-item').click(function (e) {
+				e.preventDefault();
+				var itemId = $(this).data('id');
+				$.get('@Url.Action("Edit", "Home")', { id: itemId }, function (data) {
+					$('#itemForm input[name="Id"]').val(data.id);
+					$('#itemForm input[name="Name"]').val(data.name);
+					$('#itemForm input[name="Quantity"]').val(data.quantity);
+					$('#itemForm input[name="Price"]').val(data.price);
+					$('#itemModal').modal('show');
+				});
+			});
+
+			function showValidationErrors(errors) {
+				resetValidation();
+
+				if (typeof errors === 'object') {
+					for (var key in errors) {
+						var errorMsg = errors[key][0];
+						var fieldName = key.charAt(0).toLowerCase() + key.slice(1);
+						$(`[data-valmsg-for="${fieldName}"]`).text(errorMsg);
+					}
+				}
+			}
+
+			function resetValidation() {
+				$('.text-danger').text('');
+			}
+
+			function resetForm() {
+				$('#itemForm')[0].reset();
+				$('#itemForm input[name="Id"]').val('');
+				resetValidation();
+			}
+		});
+	</script>
+}

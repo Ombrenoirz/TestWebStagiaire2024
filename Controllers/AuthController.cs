@@ -43,6 +43,7 @@ namespace TestWebStagiaire2024.Controllers
             }
 
             HttpContext.Session.SetString("Username", user.Username);
+            HttpContext.Session.SetInt32("UserId", user.Id);
 
             return RedirectToAction("Index", "Home");
         }
@@ -84,6 +85,7 @@ namespace TestWebStagiaire2024.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Remove("Username");
+            HttpContext.Session.Remove("UserId");
             return RedirectToAction("Login", "Auth");
         }
     }

@@ -1,11 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TestWebStagiaire2024.Models.Entities
+namespace TestWebStagiaire2024.Models
 {
-    public class Item
+    public class ItemViewModel
     {
-        [Key]
         public int? Id { get; set; }
 
         [Required(ErrorMessage = "Nom requis")]
@@ -18,12 +16,6 @@ namespace TestWebStagiaire2024.Models.Entities
 
         [Required(ErrorMessage = "Prix requis")]
         [Range(0.01, double.MaxValue, ErrorMessage = "Prix minimum à 0.01")]
-        [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
-
-        public int UserId { get; set; }
-        public User? User { get; set; }
-
-        public bool IsDeleted { get; set; } = false;
     }
 }
